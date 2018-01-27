@@ -4,6 +4,7 @@ from django_countries.fields import CountryField
 import jsonfield
 from django.utils.translation import ugettext_lazy as _
 from localflavor.us.models import USStateField
+import json
 #from phonenumber_field.modelfields import PhoneNumberField
 
 # Create your models here.
@@ -80,7 +81,7 @@ class Player(models.Model):
         help_text=_('Please check if you are under a professional soccer contract'))
     modtime = models.DateTimeField(auto_now=True)
     ussf_id = models.CharField('ussf-id', max_length=32, null=True, blank=True)
-    ussf_submitted = models.DateTimeField(null=True)
+    ussf_submitted = models.DateTimeField(blank=True, null=True)
 
     @property
     def ussf_needs_update(self):
@@ -116,6 +117,7 @@ class Player(models.Model):
             "most_recent_school": "Elm Street Elementary",
             "external_id": self.id,
         }
+        return json.dumps(submission)
 
 
 
@@ -123,7 +125,7 @@ class Competition(models.Model):
     name = models.CharField('competition', max_length=32)
     modtime = models.DateTimeField(auto_now=True)
     ussf_id = models.CharField('ussf-id', max_length=32, null=True, blank=True)
-    ussf_submitted = models.DateTimeField(null=True)
+    ussf_submitted = models.DateTimeField(blank=True, null=True)
 
     @property
     def ussf_needs_update(self):
@@ -155,4 +157,5 @@ class Competition(models.Model):
             "address": address,
             "external_id": self.id
         }
+        return json.dumps(submission)
 

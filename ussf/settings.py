@@ -126,6 +126,9 @@ STATICFILES_DIRS = (
 )
 
 USSF_API_KEY = "Zy70mQxAx6bcopN87YOLJxZL7pLgQTdreBUsFbqAFANxI68XFL2WiA=="
+USSF_URL = "https://api-staging.ussoccerconnect.com"
+USSF_CLIENT_ID = "Webmaster@mass-Soccer.org"
+
 
 CELERY_RESULT_BACKEND = 'django-db'
 

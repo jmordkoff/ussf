@@ -10,7 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from .models import WebhookMessage
-from .tasks import ProcessIncoming
+from .tasks import ProcessIncoming, ProcessOutgoing
 
 
 
@@ -33,7 +33,7 @@ def process_message(request, hook):
             return False
     # validate
     payload = meta['x-ussf-timestamp'] + jsondata
-    sig_calc = base64.b64encode(hmac.new(APIKEY, msg=payload, digestmode=hashlib.sha256).digest())
+    sig_calc = base64.b64encode(hmac.new(str.encode(APIKEY), msg=str.encode(payload), digestmod=hashlib.sha256).digest())
     if sig_calc != meta['Authorization']:
         logger.error("Authorization mismatch")
         return False
@@ -73,5 +73,6 @@ def player_callback(request):
 def kickit(request):
     logger.info("kicking it...")
     ProcessIncoming().run()
+    ProcessOutgoing().run()
     return HttpResponse("Success", status=200)
     
