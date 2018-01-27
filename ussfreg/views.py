@@ -10,6 +10,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from .models import WebhookMessage
+from .tasks import ProcessIncoming
+
 
 
 logger = logging.getLogger(__name__)
@@ -68,3 +70,8 @@ def player_callback(request):
         return HttpResponse("Access Denied", status=403)
 
 
+def kickit(request):
+    logger.info("kicking it...")
+    ProcessIncoming().run()
+    return HttpResponse("Success", status=200)
+    

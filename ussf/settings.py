@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'ussfreg',
+    'django_celery_results',
 ]
 
 MIDDLEWARE = [
@@ -125,3 +126,43 @@ STATICFILES_DIRS = (
 )
 
 USSF_API_KEY = "Zy70mQxAx6bcopN87YOLJxZL7pLgQTdreBUsFbqAFANxI68XFL2WiA=="
+
+CELERY_RESULT_BACKEND = 'django-db'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR + '/logs/debug.log',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'ussfreg.views': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'ussfreg.tasks': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'ussfreg.models': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}

@@ -1,13 +1,16 @@
 from celery.task import PeriodicTask
 from celery.schedules import crontab
-
+import logging
 from .models import Player, Competition, WebhookMessage
+
+logger = logging.getLogger(__name__)
 
 
 class ProcessIncoming(PeriodicTask):
     run_every = crontab()
 
     def run(self):
+        logger.info("running tasks")
         for message in WebhookMessage.objects.filter(status=WebhookMessage.UNPROCESSED):
             try:
                 self.process_message(message)
@@ -22,9 +25,9 @@ class ProcessIncoming(PeriodicTask):
         
 
 
-        if message.hook = WebhookMessage.COMPETITION:
+        if message.hook == WebhookMessage.COMPETITION:
             self.process_competiion(message)
-        elif message.hook = WebhookMessage.PLAYER:
+        elif message.hook == WebhookMessage.PLAYER:
             self.process_player(message)
         else:
             logger.error("unknown hook type %s in record %d" % ( message.hook, message.id))

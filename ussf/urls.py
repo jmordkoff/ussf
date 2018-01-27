@@ -22,4 +22,5 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^webhook/player$', ussfreg.views.player_callback),
     url(r'^webhook/competition$', ussfreg.views.competition_callback),
+    url(r'^kickit$', ussfreg.views.kickit),
 ]

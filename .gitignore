@@ -1,5 +1,6 @@
 static_tmp
 db.sqlite3
 env
+logs
 
 __pycache__
