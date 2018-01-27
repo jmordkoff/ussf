@@ -40,7 +40,7 @@ class WebhookMessage(models.Model):
         return u'{0}'.format(self.date_event_generated)
 
 
-GENDERS = ( ( 'm', _('Male')) , ('f', _('Female')) )
+GENDERS = ( ( 'm', _('male')) , ('f', _('female')) )
 
 
 class Player(models.Model):
@@ -89,26 +89,22 @@ class Player(models.Model):
             
     def ussf_to_json(self):
         address = { 
-            "street_1": "99999 Main St.",
-            "street_2": "Apt 121",
-            "city": "Nashua",
-            "state": "NH",
-            "postal_code": "03060",
+            "street_1": self.address1,
+            "street_2": self.address2,
+            "city": self.city,
+            "state": self.state,
+            "postal_code": self.zipcode,
             "country_code": "US"
         }
 
         submission = { 
-            "name_first": "John",
-            "name_last": "Smith",
-            "email": "john.smith@email.com",
+            "name_first": self.first_name,
+            "name_last": self.last_name,
+            "email": "%s.%s@gmail.com" % ( self.first_name, self.last_name),
             "gender": "male",
             "dob": "2008-08-22",
-            "email_parent": "jane.smith@email.com",
-            "phone_number": "555-123-1234",
+            "phone_number": "123-456-7890",
             "address": address,
-            "competition": {
-                "fifa_id": "1MC7K2C"
-            },
             "citizenship": ["US"],
             "citizenship_country": "string",
             "played_outside_us": "no",

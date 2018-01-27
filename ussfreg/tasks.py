@@ -56,29 +56,44 @@ class ProcessOutgoing(PeriodicTask):
         for comp in Competition.objects.all():
             if comp.ussf_needs_update:
                 logger.info("sending comp %d" % comp.id)
-                self.send_to_ussf("competitions", comp.ussf_to_json())
+                if self.send_to_ussf("competitions", comp.ussf_to_json()):
+                    comp.ussf_submitted = datetime.datetime.now()
+                    comp.save()
 
 
         for player in Player.objects.all():
             if player.ussf_needs_update:
                 logger.info("sending player %d" % player.id)
-                self.send_to_ussf("registrations", player.ussf_to_json())
+                if self.send_to_ussf("registrations", player.ussf_to_json()):
+                    player.ussf_submitted = datetime.datetime.now()
+                    player.save()
 
 
     def send_to_ussf(self, api, json):
                 path = USSF_URL + "/" + api
-                print(path)
+                logger.debug(path)
                 timestamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
-                print(timestamp)
+                logger.debug(timestamp)
                 payload = timestamp + json
-                sig_calc = base64.b64encode(hmac.new(str.encode(APIKEY), msg=str.encode(payload), digestmod=hashlib.sha256).digest())
+                logger.debug(json)
+                HMAC = hmac.new(APIKEY.encode(), msg=payload.encode(), digestmod=hashlib.sha256)
+                sig_calc = base64.b64encode(HMAC.digest())
                 auth = "Authorization: ussf {clientId}:{sig}".format(
                     clientId = CLIENTID,
-                    sig=sig_calc,
+                    sig=sig_calc.decode(),
                 )
-                headers = { 'Authorization': auth, 'x-ussf-timestamp': timestamp }
+                logger.debug(auth)
+                headers = { 
+                    'Authorization': auth, 
+                    'x-ussf-timestamp': timestamp,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                }
                 r = requests.post(path, headers=headers, data=json)    
-                print(r.text)
+                logger.debug(r.text)
+                logger.debug(r.headers)
+                return r.status_code == 200
+                    
 
     
 
