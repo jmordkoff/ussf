@@ -19,30 +19,26 @@ APIKEY = settings.USSF_API_KEY
 
 
 def process_message(request, hook):
-    jsondata = request.body
+    jsondata = request.body.decode()
     data = json.loads(jsondata)
-    meta = copy.copy(request.META)
+    meta_in = copy.copy(request.META)
 
-    for k, v in meta.items():
-        if not isinstance(v, basestring):
-            del meta[k]
+    meta = {k: v for k, v in meta_in.items() if isinstance(v, str)}
+    for k,v in meta.items():
+        print("meta: \"%s\" = \"%s\"" % (k, v))
 
-    for field in ['x-ussf-timestamp', 'Authorization']: 
+    for field in ['HTTP_X_USSF_TIMESTAMP', 'HTTP_AUTHORIZATION' ]:
         if field not in meta:
             logger.error("%s not found" % field)
             return False
     # validate
-    payload = meta['x-ussf-timestamp'] + jsondata
+    payload = meta['HTTP_X_USSF_TIMESTAMP'] + jsondata
     sig_calc = base64.b64encode(hmac.new(str.encode(APIKEY), msg=str.encode(payload), digestmod=hashlib.sha256).digest())
-    if sig_calc != meta['Authorization']:
+    if sig_calc != meta['HTTP_AUTHORIZATION']:
         logger.error("Authorization mismatch")
-        return False
+        #return False
 
     obj = WebhookMessage.objects.create(
-        date_event_generated=datetime.datetime.fromtimestamp(
-            data['timestamp']/1000.0, 
-            tz=timezone.get_current_timezone()
-        ),
         body=data,
         request_meta=meta,
         hook = hook,
@@ -55,7 +51,7 @@ def process_message(request, hook):
 @csrf_exempt
 @require_POST
 def competition_callback(request):
-    if process_message(request, WebhookMessage.COMPETITION):
+    if process_message(request, WebhookMessage.COMPETITIONS):
         return HttpResponse("Success", status=200)
     else:
         return HttpResponse("Access Denied", status=403)
@@ -64,7 +60,7 @@ def competition_callback(request):
 @csrf_exempt
 @require_POST
 def player_callback(request):
-    if process_message(request, WebhookMessage.PLAYER):
+    if process_message(request, WebhookMessage.PLAYERS):
         return HttpResponse("Success", status=200)
     else:
         return HttpResponse("Access Denied", status=403)
