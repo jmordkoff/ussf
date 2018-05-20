@@ -1,14 +1,25 @@
+import base64
+import datetime
+import hashlib
+import hmac
+import json
+import jsonfield
+import logging
+import requests
+
+from django.conf import settings
+from django_countries.fields import CountryField
 from django.db import models
 from django.utils import timezone
-from django_countries.fields import CountryField
-import jsonfield
 from django.utils.translation import ugettext_lazy as _
+
 from localflavor.us.models import USStateField
-import json
-#from phonenumber_field.modelfields import PhoneNumberField
 
-# Create your models here.
 
+logger = logging.getLogger(__name__)
+USSF_URL = settings.USSF_URL
+APIKEY = settings.USSF_API_KEY
+CLIENTID =  settings.USSF_CLIENT_ID
 
 class WebhookMessage(models.Model):
     UNPROCESSED = 'U'
@@ -102,18 +113,28 @@ class Player(models.Model):
             "name_last": self.last_name,
             "email": "%s.%s@gmail.com" % ( self.first_name, self.last_name),
             "gender": "male",
-            "dob": "2008-08-22",
+            "dob": "1961-02-02",
+            "type": "reg",
+            "level": "Amateur",
+            "date_start": "2018-02-20",
+            "date_end": "2019-12-31",
             "phone_number": "123-456-7890",
             "address": address,
             "citizenship": ["US"],
-            "citizenship_country": "string",
-            "played_outside_us": "no",
+            "played_outside_us": False,
             "previous_club_country": "",
             "previous_club_name": "",
             "most_recent_school": "Elm Street Elementary",
             "external_id": self.id,
         }
         return json.dumps(submission)
+
+    def send_to_ussf(self):
+        if self.ussf_needs_update:
+            logger.info("sending player %d" % self.id)
+            if xmit_to_ussf("registrations", self.ussf_to_json()):
+                self.ussf_submitted = datetime.datetime.now()
+                self.save()
 
 
 
@@ -155,3 +176,38 @@ class Competition(models.Model):
         }
         return json.dumps(submission)
 
+    def send_to_ussf(self):
+        if self.ussf_needs_update:
+            logger.info("sending comp %d" % self.id)
+            if xmit_to_ussf("competitions", self.ussf_to_json()):
+                self.ussf_submitted = datetime.datetime.now()
+                self.save()
+
+
+
+def xmit_to_ussf(api, json):
+                logger.debug("json: " + json)
+                path = USSF_URL + "/api/" + api
+                logger.debug("path: " + path)
+                timestamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+                logger.debug("timestamp: " + timestamp)
+                payload = timestamp + json
+                HMAC = hmac.new(APIKEY.encode(), msg=payload.encode(), digestmod=hashlib.sha256)
+                sig_calc = base64.b64encode(HMAC.digest())
+                auth = "ussf {clientId}:{sig}".format(
+                    clientId = CLIENTID,
+                    sig=sig_calc.decode(),
+                )
+                logger.debug(auth)
+                headers = { 
+                    'Authorization': auth, 
+                    'x-ussf-timestamp': timestamp,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                }
+                logger.debug(headers)
+                r = requests.post(path, headers=headers, data=json)    
+                logger.debug(r.text)
+                logger.debug(r.headers)
+                return r.status_code == 200
+                    

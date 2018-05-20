@@ -1,6 +1,10 @@
+import datetime
+import simplejson
+
 from django.test import TestCase
 from django.test.client import Client
-import simplejson
+
+from .models import Player
 
 
 
@@ -10,7 +14,7 @@ import simplejson
 class TestPipeline(TestCase):
 
 
-    def test_your_test(self):
+    def test_player_webhook(self):
         python_dict = {
             "type": "player_registration",
             "request_url": "https://ussoccerconnect.com/api/registrations",
@@ -27,6 +31,29 @@ class TestPipeline(TestCase):
                         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content, b'Success')
+        # TODO verify the data is processable
+
+
+    def createPlayer(self):
+        pl = Player(
+                first_name = 'joe',
+                last_name = 'player',
+                address1 = 'address1',
+                city = 'Boston',
+                state = 'MA',
+                zipcode = '01234',
+                mass_id = 'MA1800012345',
+                dob = datetime.date(1961, 12, 12),
+                country = 'US',
+                gender = 'M',
+            )
+        pl.save()
+        return pl
+        
+    def test_post_player(self):
+        pl = self.createPlayer()
+        pl.send_to_ussf()
+        self.assertNotEqual(pl.ussf_submitted, None)
 
                          
 
