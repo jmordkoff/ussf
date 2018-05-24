@@ -131,6 +131,7 @@ USSF_CLIENT_ID = "5b00c3c5f5ba95001e2016e2"
 
 
 CELERY_RESULT_BACKEND = 'django-db'
+LOG_DIR = BASE_DIR + "/logs"
 
 LOGGING = {
     'version': 1,
@@ -139,7 +140,7 @@ LOGGING = {
         'file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': BASE_DIR + '/logs/debug.log',
+            'filename': LOG_DIR + '/debug.log',
         },
         'console': {
             'level': 'DEBUG',

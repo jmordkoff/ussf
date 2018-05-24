@@ -4,7 +4,7 @@ import simplejson
 from django.test import TestCase
 from django.test.client import Client
 
-from .models import Player
+from .models import Player, Competition, WebhookMessage
 
 
 
@@ -33,6 +33,10 @@ class TestPipeline(TestCase):
         self.assertEqual(response.content, b'Success')
         # TODO verify the data is processable
 
+    def createComp(self):
+        comp = Competition(name="test comp")
+        comp.save()
+        return comp
 
     def createPlayer(self):
         pl = Player(
@@ -49,10 +53,18 @@ class TestPipeline(TestCase):
             )
         pl.save()
         return pl
-        
-    def test_post_player(self):
+
+    def test_post(self):
+        comp = self.createComp()
+        comp.send_to_ussf()
+        self.assertNotEqual(comp.ussf_submitted, None)
+
+        while not WebhookMessage.objects.filter(status='U').count():
+            print("waiting for callback")
+            time.sleep(1)
+
         pl = self.createPlayer()
-        pl.send_to_ussf()
+        pl.send_to_ussf(comp)
         self.assertNotEqual(pl.ussf_submitted, None)
 
                          

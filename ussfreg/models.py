@@ -54,6 +54,7 @@ class WebhookMessage(models.Model):
 GENDERS = ( ( 'm', _('male')) , ('f', _('female')) )
 
 
+
 class Player(models.Model):
 
     first_name = models.CharField(_('First (Given) Name'), max_length=20)
@@ -98,7 +99,7 @@ class Player(models.Model):
     def ussf_needs_update(self):
         return self.ussf_submitted is None or self.ussf_submitted < self.modtime
             
-    def ussf_to_json(self):
+    def ussf_to_json(self, comp):
         address = { 
             "street_1": self.address1,
             "street_2": self.address2,
@@ -106,6 +107,10 @@ class Player(models.Model):
             "state": self.state,
             "postal_code": self.zipcode,
             "country_code": "US"
+        }
+
+        competition = {
+            "fifa_id": comp.fifa_id,
         }
 
         submission = { 
@@ -126,13 +131,15 @@ class Player(models.Model):
             "previous_club_name": "",
             "most_recent_school": "Elm Street Elementary",
             "external_id": self.id,
+            "state_member": "Massachusetts Adult State Soccer Association",
+            "competiion": competition,
         }
         return json.dumps(submission)
 
-    def send_to_ussf(self):
+    def send_to_ussf(self, comp):
         if self.ussf_needs_update:
             logger.info("sending player %d" % self.id)
-            if xmit_to_ussf("registrations", self.ussf_to_json()):
+            if xmit_to_ussf("registrations", self.ussf_to_json(comp)):
                 self.ussf_submitted = datetime.datetime.now()
                 self.save()
 
@@ -142,6 +149,7 @@ class Competition(models.Model):
     name = models.CharField('competition', max_length=32)
     modtime = models.DateTimeField(auto_now=True)
     ussf_id = models.CharField('ussf-id', max_length=32, null=True, blank=True)
+    fifa_id = models.CharField('fifa-id', max_length=32, null=True, blank=True)
     ussf_submitted = models.DateTimeField(blank=True, null=True)
 
     @property
@@ -150,16 +158,14 @@ class Competition(models.Model):
 
     def ussf_to_json(self):
         contact = {
-            "name_first": "Joe",
-            "name_last": "Smith",
-            "role": "Apt 121",
+            "name": "Joe Smith",
+            "role": "admin",
             "email": "sam.smith@email.com",
             "phone_primary": "555-223-1234",
             "phone_secondary": "111-123-5678",
         }
         address = {
             "street_1": "99999 Main St.",
-            "street_2": "Suite 121",
             "city": "Nashua",
             "state": "NH",
             "postal_code": "03060",
@@ -167,8 +173,8 @@ class Competition(models.Model):
         }
         submission = {
             "name": self.name,
-            "type": "club",
-            "ages": "u-12",
+            "type": "league",
+            "ages": "open",
             "gender": "co-ed",
             "contact": contact,
             "address": address,
@@ -182,6 +188,8 @@ class Competition(models.Model):
             if xmit_to_ussf("competitions", self.ussf_to_json()):
                 self.ussf_submitted = datetime.datetime.now()
                 self.save()
+            else:
+                logger.error("submission of competition %d failed" % self.id)
 
 
 
@@ -198,16 +206,15 @@ def xmit_to_ussf(api, json):
                     clientId = CLIENTID,
                     sig=sig_calc.decode(),
                 )
-                logger.debug(auth)
+                logger.debug("AUTH: " + auth)
                 headers = { 
                     'Authorization': auth, 
                     'x-ussf-timestamp': timestamp,
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
                 }
-                logger.debug(headers)
-                r = requests.post(path, headers=headers, data=json)    
-                logger.debug(r.text)
-                logger.debug(r.headers)
-                return r.status_code == 200
+                r = requests.post(path, headers=headers, data=json)
+                logger.debug("RESPONSE TEXT: " + r.text)
+                logger.debug("RESPONSE status code: %d" % r.status_code)
+                return r.status_code == 202
                     
