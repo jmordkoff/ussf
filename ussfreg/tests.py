@@ -2,6 +2,7 @@ import datetime
 import simplejson
 
 from django.test import TestCase
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.test.client import Client
 
 from .models import Player, Competition, WebhookMessage
@@ -13,6 +14,11 @@ from .models import Player, Competition, WebhookMessage
 
 class TestPipeline(TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        cls.host = "174.37.215.210"
+        cls.port = 8888
+        super().setUpClass()
 
     def test_player_webhook(self):
         python_dict = {
@@ -32,6 +38,10 @@ class TestPipeline(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content, b'Success')
         # TODO verify the data is processable
+
+class TestCallBacks(StaticLiveServerTestCase):
+
+
 
     def createComp(self):
         comp = Competition(name="test comp")
