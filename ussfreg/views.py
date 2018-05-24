@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 APIKEY = settings.USSF_API_KEY
 
 
-def process_message(request, hook):
+def process_message(request):
     jsondata = request.body.decode()
     data = json.loads(jsondata)
     meta_in = copy.copy(request.META)
@@ -30,7 +30,7 @@ def process_message(request, hook):
     for field in ['HTTP_X_USSF_TIMESTAMP', 'HTTP_AUTHORIZATION' ]:
         if field not in meta:
             logger.error("%s not found" % field)
-            return False
+            # return False
     # validate
     payload = meta['HTTP_X_USSF_TIMESTAMP'] + jsondata
     sig_calc = base64.b64encode(hmac.new(str.encode(APIKEY), msg=str.encode(payload), digestmod=hashlib.sha256).digest())
@@ -41,7 +41,6 @@ def process_message(request, hook):
     obj = WebhookMessage.objects.create(
         body=data,
         request_meta=meta,
-        hook = hook,
     )
     logger.info("Message %d accepted" % obj.id)
     return True
@@ -50,17 +49,8 @@ def process_message(request, hook):
 
 @csrf_exempt
 @require_POST
-def competition_callback(request):
-    if process_message(request, WebhookMessage.COMPETITIONS):
-        return HttpResponse("Success", status=200)
-    else:
-        return HttpResponse("Access Denied", status=403)
-
-
-@csrf_exempt
-@require_POST
-def player_callback(request):
-    if process_message(request, WebhookMessage.PLAYERS):
+def webhook(request):
+    if process_message(request):
         return HttpResponse("Success", status=200)
     else:
         return HttpResponse("Access Denied", status=403)

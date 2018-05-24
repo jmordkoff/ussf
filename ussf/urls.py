@@ -16,11 +16,10 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 
-import ussfreg.views
+from ussfreg.views import webhook, kickit
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^webhook/player$', ussfreg.views.player_callback),
-    url(r'^webhook/competition$', ussfreg.views.competition_callback),
-    url(r'^kickit$', ussfreg.views.kickit),
+    url(r'^webhook$', webhook),
+    url(r'^kickit$', kickit),
 ]

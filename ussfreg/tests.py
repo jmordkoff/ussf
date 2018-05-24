@@ -13,7 +13,7 @@ from .models import Player, Competition, WebhookMessage
 # wget -O - -q --post-file sample.json --header='x-ussf-timestamp:12234'  --header='authorization:foo' http://reg.mass-soccer.org:8888/webhook/player
 
 
-class TestPipeline(TestCase):
+class TestWebhook(TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -30,7 +30,7 @@ class TestPipeline(TestCase):
             "external_id": "1XXXXX3"
         }
 
-        response = self.client.post('/webhook/player', 
+        response = self.client.post('/webhook',
                         simplejson.dumps(python_dict), 
                         content_type="application/json",
                         HTTP_X_USSF_TIMESTAMP="1234",
