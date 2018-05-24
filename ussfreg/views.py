@@ -24,25 +24,34 @@ def process_message(request):
     meta_in = copy.copy(request.META)
 
     meta = {k: v for k, v in meta_in.items() if isinstance(v, str)}
+
+    obj = WebhookMessage.objects.create(
+        body=data,
+        request_meta=meta,
+        status='E',
+    )
+
+    
     for k,v in meta.items():
         print("meta: \"%s\" = \"%s\"" % (k, v))
 
     for field in ['HTTP_X_USSF_TIMESTAMP', 'HTTP_AUTHORIZATION' ]:
         if field not in meta:
             logger.error("%s not found" % field)
-            # return False
-    # validate
-    payload = meta['HTTP_X_USSF_TIMESTAMP'] + jsondata
-    sig_calc = base64.b64encode(hmac.new(str.encode(APIKEY), msg=str.encode(payload), digestmod=hashlib.sha256).digest())
-    if sig_calc != meta['HTTP_AUTHORIZATION']:
-        logger.error("Authorization mismatch")
-        #return False
+            return False
+    try:
+        # validate
+        payload = meta['HTTP_X_USSF_TIMESTAMP'] + jsondata
+        sig_calc = base64.b64encode(hmac.new(str.encode(APIKEY), msg=str.encode(payload), digestmod=hashlib.sha256).digest())
+        if sig_calc != meta['HTTP_AUTHORIZATION']:
+            logger.error("Authorization mismatch")
+            #return False
+        obj.status='U'
+    except Exception as e:
+        logger.error("validation error")
 
-    obj = WebhookMessage.objects.create(
-        body=data,
-        request_meta=meta,
-    )
-    logger.info("Message %d accepted" % obj.id)
+    obj.save()
+    logger.info("Message %d accepted status %s" % (obj.id, obj.status))
     return True
 
     

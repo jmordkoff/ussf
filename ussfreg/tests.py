@@ -45,7 +45,7 @@ class TestCallBacks(StaticLiveServerTestCase):
 
 
     def createComp(self):
-        comp = Competition(name="test comp")
+        comp = Competition(name="test comp %d" %  time.time() )
         comp.save()
         return comp
 
@@ -70,13 +70,11 @@ class TestCallBacks(StaticLiveServerTestCase):
         comp.send_to_ussf()
         self.assertNotEqual(comp.ussf_submitted, None)
 
-        comp.fifa_id = "FIFA001"
-        comp.ussf_id = "USSF001" 
+        #while WebhookMessage.objects.filter(status='U').count() == 0:
+        #    print("waiting for response")
+        #    time.sleep(1)
+        comp.fifa_id = "1MC7K2C"
         comp.save()
-
-        while WebhookMessage.objects.filter(status='U').count() == 0:
-            print("waiting for response")
-            time.sleep(1)
 
         pl = self.createPlayer()
         pl.send_to_ussf(comp)

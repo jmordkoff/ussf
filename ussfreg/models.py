@@ -142,6 +142,8 @@ class Player(models.Model):
             if xmit_to_ussf("registrations", self.ussf_to_json(comp)):
                 self.ussf_submitted = datetime.datetime.now()
                 self.save()
+            else:
+                logger.error("submission of player %d failed" % self.id)
 
 
 
