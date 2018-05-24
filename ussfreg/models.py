@@ -132,7 +132,7 @@ class Player(models.Model):
             "most_recent_school": "Elm Street Elementary",
             "external_id": self.id,
             "state_member": "Massachusetts Adult State Soccer Association",
-            "competiion": competition,
+            "competition": competition,
         }
         return json.dumps(submission)
 

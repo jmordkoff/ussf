@@ -1,5 +1,6 @@
 import datetime
 import simplejson
+import time
 
 from django.test import TestCase
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
@@ -69,9 +70,9 @@ class TestCallBacks(StaticLiveServerTestCase):
         comp.send_to_ussf()
         self.assertNotEqual(comp.ussf_submitted, None)
 
-        while not WebhookMessage.objects.filter(status='U').count():
-            print("waiting for callback")
-            time.sleep(1)
+        comp.fifa_id = "FIFA001"
+        comp.ussf_id = "USSF001" 
+        comp.save()
 
         pl = self.createPlayer()
         pl.send_to_ussf(comp)
