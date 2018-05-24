@@ -74,6 +74,10 @@ class TestCallBacks(StaticLiveServerTestCase):
         comp.ussf_id = "USSF001" 
         comp.save()
 
+        while WebhookMessage.objects.filter(status='U').count() == 0:
+            print("waiting for response")
+            time.sleep(1)
+
         pl = self.createPlayer()
         pl.send_to_ussf(comp)
         self.assertNotEqual(pl.ussf_submitted, None)
