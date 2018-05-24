@@ -125,9 +125,9 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR, "static"),
 )
 
-USSF_API_KEY = '2FRTL0V4kcChFnsbteoQ+SK5d3t4FcC3sKT4Xf0Dhx25TzwGId9IiA=='
+USSF_API_KEY = 'wXl9a98kXaBHiFXJqNNRgssGtsmBjwmKgoY2jyRo5IY4IMXUzeuwuQ=='
 USSF_URL = "https://staging.ussoccerconnect.com"
-USSF_CLIENT_ID = "5a62cc9a46e3c6001d389c64"
+USSF_CLIENT_ID = "5b00c3c5f5ba95001e2016e2"
 
 
 CELERY_RESULT_BACKEND = 'django-db'
